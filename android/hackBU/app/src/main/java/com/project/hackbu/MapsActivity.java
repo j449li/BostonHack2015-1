@@ -190,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void getInfo() throws UnsupportedEncodingException, JSONException {
         final JSONObject requestJson = new JSONObject();
-        requestJson.put("player_id", "maidi");
+        requestJson.put("player_id", "estar");
 
 //        JSONArray arr = new JSONArray();
 //        for (LatLng ll : routeCoord) {
@@ -222,7 +222,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             JSONArray jArr = response.getJSONArray(id);
 
                             for (int j = 0; j < jArr.length(); j++) {
-                                JSONObject jObj = jArr.getJSONObject(i);
+                                JSONObject jObj = jArr.getJSONObject(j);
                                 Log.d(TAG, jObj.toString());
 
                                 String player_id = jObj.getString("player_id");
@@ -240,7 +240,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
-                Log.d(TAG, response.toString());
+//                Log.d(TAG, response.toString());
                 //Log.d(TAG, requestJson.toString());
             }
 

@@ -156,7 +156,8 @@ public class RouteTrackService extends Service implements
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
-                Log.d(TAG, response.toString());
+                Log.e(TAG, ""+statusCode);
+//                Log.d(TAG, response.toString());
                 //Log.d(TAG, requestJson.toString());
             }
 
