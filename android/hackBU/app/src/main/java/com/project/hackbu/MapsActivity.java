@@ -11,8 +11,10 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 
@@ -40,6 +42,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static int REQUEST_FAST_INTERVAL = 7000;
     private static int REQUEST_INTERVAL = 4000;
 
+    //zoom level on startup of the app
+    private static int INITIAL_ZOOM_LVL = 17;
+
     // meters
     private static int REQUEST_SMALLEST_DISPLACEMENT = 10;
 
@@ -47,6 +52,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private GoogleApiClient mGoogleApiClient;
+
+    private Button btnStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +68,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGoogleApiClient.connect();
 
         setUpMapIfNeeded();
+
+        btnStart = (Button) findViewById(R.id.btnStart);
+        btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO call route track service
+            }
+        });
     }
 
     @Override
@@ -123,7 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             finish();
         }
 
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(INITIAL_ZOOM_LVL));
     }
 
     protected LocationRequest createLocationRequest() {
