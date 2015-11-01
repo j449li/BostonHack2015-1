@@ -3,8 +3,8 @@ var app = express();
 //var multer = require('multer');
 var bodyParser = require('body-parser');
 var Polygon = require('polygon');
+var azure = require('./microsoft');
 
-var URL = 'https://turfwarz.azure-mobile.net';
 app.set('port', (process.env.PORT || 5000));
 
 var server = app.listen(app.get("port"), function () {
@@ -59,7 +59,9 @@ app.post('/user/login', function(req, res){
         "Access-Control-Allow-Origin": "*"
     });
 
-    
+    azure.login(req.body.username, req.body.password, function(userData){
+    	res.status(200).send(userData);
+    });
 });
 
 app.get('/user/info', function(req, res){
