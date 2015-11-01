@@ -10,3 +10,4 @@
 .idea/
 *.properties
 *.bat
+*node_modules*
