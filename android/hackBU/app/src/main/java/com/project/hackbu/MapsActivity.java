@@ -189,13 +189,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void populateTurfs() throws UnsupportedEncodingException, JSONException{
-        getInfo("/enemy/info", Color.argb(180, 200, 50, 50));
         getInfo("/user/info", Color.argb(180,50,200,50));
+        if(UserData.getInstance().hasData(UserData.TEAM)) {
+            getInfo("/ally/info", Color.argb(100, 200, 50, 50));
+        }
+        getInfo("/enemy/info", Color.argb(180, 200, 50, 50));
     }
+
     private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener() {
         @Override
         public void onBandHeartRateChanged(final BandHeartRateEvent event) {
-            if (event != null && event.getQuality() == HeartRateQuality.LOCKED) {
+            if (event != null) {
                 //Heartrate can be received
                 RouteTrackService.recentHeartRate = event.getHeartRate();
 
@@ -261,7 +265,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void getInfo(String url, final int color) throws UnsupportedEncodingException, JSONException {
         final JSONObject requestJson = new JSONObject();
         requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
-
+        if(UserData.getInstance().hasData(UserData.TEAM)) {
+            requestJson.put("team", UserData.getInstance().getData(UserData.TEAM));
+        }
 //        JSONArray arr = new JSONArray();
 //        for (LatLng ll : routeCoord) {
 //            JSONObject json1 = new JSONObject();
@@ -418,9 +424,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             } else {
                 polyLineOpts.add(latLng);
             }
+            mMap.addPolyline(polyLineOpts);
         }
-
-        mMap.addPolyline(polyLineOpts);
+        
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 

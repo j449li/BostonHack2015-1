@@ -152,6 +152,9 @@ public class LoginActivity extends Activity {
                         JSONObject result = new JSONObject(retSrc); //Convert String to JSON Object
 
                         UserData.getInstance().setData(UserData.ID, result.getString(UserData.ID));
+
+                        if(result.has(UserData.TEAM))
+                            UserData.getInstance().setData(UserData.TEAM, result.getString(UserData.TEAM));
                     }
                 } catch (Exception e) {
                     Log.e("Login Request failed", e.getMessage());
