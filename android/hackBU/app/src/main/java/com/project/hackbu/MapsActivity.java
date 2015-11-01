@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.maps.android.PolyUtil;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.project.hackbu.util.ApiClient;
+import com.project.hackbu.util.UserData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,7 +59,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BroadcastReceiver receiver;
 
     private Button btnStartStop;
-    private Button btnRanking;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +110,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_ALL_COORDS));
 
         btnStartStop = (Button) findViewById(R.id.btnStartStop);
-        btnRanking = (Button) findViewById(R.id.btnRanking);
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,15 +141,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Log.e(TAG, e.toString());
                     }
                 }
-            }
-        });
-
-        btnRanking.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MapsActivity.this, RankingActivity.class);
-                startActivity(intent);
             }
         });
 
@@ -186,7 +176,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void getInfo() throws UnsupportedEncodingException, JSONException {
         final JSONObject requestJson = new JSONObject();
-        requestJson.put("player_id", "estar");
+        requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
 
 //        JSONArray arr = new JSONArray();
 //        for (LatLng ll : routeCoord) {

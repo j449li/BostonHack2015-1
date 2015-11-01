@@ -151,7 +151,7 @@ public class LoginActivity extends Activity {
                         // parsing JSON
                         JSONObject result = new JSONObject(retSrc); //Convert String to JSON Object
 
-                        UserData.getInstance().setData("id", result.getString("id"));
+                        UserData.getInstance().setData(UserData.ID, result.getString(UserData.ID));
                     }
                 } catch (Exception e) {
                     Log.e("Login Request failed", e.getMessage());
@@ -167,7 +167,7 @@ public class LoginActivity extends Activity {
                     runOnUiThread(new Runnable() {
                         public void run() {
                             showProgress(false);
-                            if (!UserData.getInstance().getData("id").equals("")) {
+                            if (!UserData.getInstance().getData(UserData.ID).equals("")) {
                                 // go to maps activity
                                 Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
                                 startActivity(intent);

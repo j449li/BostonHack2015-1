@@ -38,21 +38,5 @@
             android:background="#1dc217"
             android:textColor="#ffffff"
             android:textSize="25dp"/>
-        <View
-            android:id="@+id/a"
-            android:layout_width="1dip"
-            android:layout_height="match_parent"
-            android:background="#aaa" />
-
-        <Button
-            android:id="@+id/btnRanking"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal|center_vertical"
-            android:text="@string/ranking"
-            android:layout_weight="1"
-            android:background="#1dc217"
-            android:textColor="#ffffff"
-            android:textSize="25dp"/>
     </LinearLayout>
 </FrameLayout>
