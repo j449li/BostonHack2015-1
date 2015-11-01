@@ -9,6 +9,12 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.CornerPathEffect;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -32,6 +38,18 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.microsoft.band.BandClient;
+import com.microsoft.band.BandClientManager;
+import com.microsoft.band.BandException;
+import com.microsoft.band.BandInfo;
+import com.microsoft.band.ConnectionState;
+import com.microsoft.band.UserConsent;
+import com.microsoft.band.sensors.BandDistanceEvent;
+import com.microsoft.band.sensors.BandDistanceEventListener;
+import com.microsoft.band.sensors.BandHeartRateEvent;
+import com.microsoft.band.sensors.BandHeartRateEventListener;
+import com.microsoft.band.sensors.HeartRateConsentListener;
+import com.microsoft.band.sensors.HeartRateQuality;
 import com.project.hackbu.util.ApiClient;
 import com.project.hackbu.util.UserData;
 
@@ -60,6 +78,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BroadcastReceiver receiver;
 
     private Button btnStartStop;
+    private Button hrtStatus;
+
+    private BandClient client = null;
 
     private PolylineOptions polyLineOpts;
 
@@ -78,6 +99,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
+                int hrtRate = RouteTrackService.recentHeartRate;
+                if (hrtRate != 0) {
+                    hrtStatus.setText(String.format("Heart Rate:\n %d bpm",
+                            hrtRate));
+                } else {
+                    hrtStatus.setText("Heart Rate:\n -- bpm");
+                }
 
                 // TODO should not default to -1 because it is a valid lat/long
                 if (action.equals(RouteTrackService.ACTION_NEW_COORD)) {
@@ -101,7 +129,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     double longitudes[] = intent.getDoubleArrayExtra(RouteTrackService.EXTRA_LONGITUDE_LIST);
 
                     if (latitudes.length == longitudes.length) {
-                        for (int i =0 ; i < latitudes.length; i++) {
+                        for (int i = 0; i < latitudes.length; i++) {
                             addMarker(latitudes[i], longitudes[i]);
                         }
                     }
@@ -109,9 +137,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         };
+        new HeartRateSubscriptionTask().execute();
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_NEW_COORD));
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_ALL_COORDS));
 
+        hrtStatus = (Button) findViewById(R.id.hrtStatus);
         btnStartStop = (Button) findViewById(R.id.btnStartStop);
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,6 +183,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         getInfo("/user/info", Color.argb(180,50,200,50));
         getInfo("/enemy/info", Color.argb(180, 200, 50, 50));
     }
+    private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener() {
+        @Override
+        public void onBandHeartRateChanged(final BandHeartRateEvent event) {
+            if (event != null && event.getQuality() == HeartRateQuality.LOCKED) {
+                //Heartrate can be received
+                RouteTrackService.recentHeartRate = event.getHeartRate();
+
+            } else {
+                RouteTrackService.recentHeartRate = 0;
+            }
+        }
+    };
+
+    private BandDistanceEventListener mDistanceEventListener = new BandDistanceEventListener() {
+        @Override
+        public void onBandDistanceChanged(BandDistanceEvent bandDistanceEvent) {
+            if (bandDistanceEvent != null) {
+                RouteTrackService.recentMotionType = bandDistanceEvent.getMotionType();
+            }
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -186,6 +237,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onDestroy();
         stopRouteTrackService();
         unregisterReceiver(receiver);
+
+        if (client != null) {
+            try {
+                client.disconnect().await();
+            } catch (InterruptedException e) {
+                // Do nothing as this is happening during destroy
+            } catch (BandException e) {
+                // Do nothing as this is happening during destroy
+            }
+        }
     }
 
     private void getInfo(String url, final int color) throws UnsupportedEncodingException, JSONException {
@@ -203,7 +264,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        requestJson.put("points", arr);
 
         Log.e(TAG, requestJson.toString());
-
+        if (client != null) {
+            try {
+                client.disconnect().await();
+            } catch (InterruptedException e) {
+                // Do nothing as this is happening during destroy
+            } catch (BandException e) {
+                // Do nothing as this is happening during destroy
+            }
+        }
         ApiClient.post(this, url, new StringEntity(requestJson.toString()), new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -360,4 +429,71 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
+    private boolean getConnectedBandClient() throws InterruptedException, BandException {
+        if (client == null) {
+            BandInfo[] devices = BandClientManager.getInstance().getPairedBands();
+            if (devices.length == 0) {
+                Log.e("RouteTrackService", "Band isn't paired with your phone.\n");
+                return false;
+            }
+            client = BandClientManager.getInstance().create(getBaseContext(), devices[0]);
+        } else if (ConnectionState.CONNECTED == client.getConnectionState()) {
+            return true;
+        }
+
+        Log.e("RouteTrackService", "Band is connecting...\n");
+        return ConnectionState.CONNECTED == client.connect().await();
+
+    }
+
+    private class HeartRateSubscriptionTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                if (getConnectedBandClient()) {
+                    if (client.getSensorManager().getCurrentHeartRateConsent() == UserConsent.GRANTED) {
+                        client.getSensorManager().registerHeartRateEventListener(mHeartRateEventListener);
+                        client.getSensorManager().registerDistanceEventListener(mDistanceEventListener);
+                    } else {
+                        client.getSensorManager().requestHeartRateConsent(MapsActivity.this, mHeartRateConsentListener);
+                    }
+
+                } else {
+                    Log.e("RouteTrackService", "Band isn't connected. Please make sure bluetooth is on and the band is in range.\n");
+                }
+            } catch (BandException e) {
+                String exceptionMessage="";
+                switch (e.getErrorType()) {
+                    case UNSUPPORTED_SDK_VERSION_ERROR:
+                        exceptionMessage = "Microsoft Health BandService doesn't support your SDK Version. Please update to latest SDK.\n";
+                        break;
+                    case SERVICE_ERROR:
+                        exceptionMessage = "Microsoft Health BandService is not available. Please make sure Microsoft Health is installed and that you have the correct permissions.\n";
+                        break;
+                    default:
+                        exceptionMessage = "Unknown error occured: " + e.getMessage() + "\n";
+                        break;
+                }
+                Log.e("RouteTrackService", exceptionMessage);
+
+            } catch (Exception e) {
+                Log.e("RouteTrackService", e.getMessage());
+            }
+            return null;
+        }
+    }
+
+    private HeartRateConsentListener mHeartRateConsentListener = new HeartRateConsentListener() {
+        @Override
+        public void userAccepted(boolean b) {
+            // handle user's heart rate consent decision
+            if (b == true) {
+                // Consent has been given, start HR sensor event listener
+                new HeartRateSubscriptionTask().execute();
+            } else {
+                // Consent hasn't been given
+                //appendToUI(String.valueOf(b));
+            }
+        }
+    };
 }
