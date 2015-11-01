@@ -146,13 +146,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isMyServiceRunning(RouteTrackService.class)) {
+                if (!started) {
                     Toast.makeText(getApplicationContext(), "Starting...", Toast.LENGTH_SHORT).show();
                     started = true;
                     mMap.clear();
 
-                    startService(new Intent(MapsActivity.this, RouteTrackService.class));
-
+                    if (!isMyServiceRunning(RouteTrackService.class)) {
+                        startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                    }
                     btnStartStop.setText("Stop");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.red));
                 } else {
