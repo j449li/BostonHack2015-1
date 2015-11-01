@@ -158,7 +158,7 @@ var info = function(player_id, callback){
 var enemyInfo = function(player_id, callback){
 	var options = {
 		method:"POST",
-		url: URL + "/api/enemyarea",
+		url: URL + "/api/allyarea",
 		headers:{
 			'Accept':'application/json'
 		}, 
@@ -167,7 +167,7 @@ var enemyInfo = function(player_id, callback){
 		},
 		json:true
 	}
-
+	console.log(options);
 	request(options, function(error, response){
 		callback(response);
 	});

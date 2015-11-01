@@ -72,7 +72,7 @@ app.post('/enemy/info', function(req, res){
         "Access-Control-Allow-Origin": "*"
     });
 
-    azure.info(req.body.player_id, function(areaData){
+    azure.enemyInfo(req.body.player_id, function(areaData){
     	if(areaData.statusCode != 200){
     		res.status(400).send(areaData.body);
     	}
