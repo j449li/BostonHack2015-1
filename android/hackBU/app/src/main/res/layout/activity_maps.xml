@@ -28,15 +28,29 @@
         android:padding="0dp"
         android:gravity="bottom">
 
-        <Button
-            android:id="@+id/btnStartStop"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="@string/start"
-            android:gravity="center_horizontal|center_vertical"
-            android:layout_weight="1"
-            android:background="#1dc217"
-            android:textColor="#ffffff"
-            android:textSize="25dp"/>
-    </LinearLayout>
+    <Button
+        android:id="@+id/btnStartStop"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:text="@string/start"
+        android:gravity="center_horizontal|center_vertical"
+        android:layout_weight="1"
+        android:background="#1dc217"
+        android:textColor="#ffffff"
+        android:textSize="25dp"/>
+
+    <Button
+        android:id="@+id/hrtStatus"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:text=""
+        android:gravity="center_horizontal|center_vertical"
+        android:layout_weight="1"
+        android:background="#e4000b"
+        android:textColor="#ffffff"
+        android:textSize="21dp"/>
+
+
+</LinearLayout>
+
 </FrameLayout>
