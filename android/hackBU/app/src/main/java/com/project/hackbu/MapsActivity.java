@@ -28,6 +28,8 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.project.hackbu.util.ApiClient;
@@ -58,6 +60,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BroadcastReceiver receiver;
 
     private Button btnStartStop;
+
+    private PolylineOptions polyLineOpts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,7 +219,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         List<LatLng> latLngList = new ArrayList<LatLng>();
                         for (int i = 0; i < arr.length(); i++) {
-                            String id = (String)arr.get(i);
+                            String id = (String) arr.get(i);
                             JSONArray jArr = response.getJSONArray(id);
 
                             for (int j = 0; j < jArr.length(); j++) {
@@ -325,7 +329,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void addMarker(double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
 
-        mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
+        if (polyLineOpts == null) {
+            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
+            polyLineOpts = new PolylineOptions()
+            .add(latLng)
+            .width(10)
+            .color(Color.BLUE)
+            .geodesic(true);
+        } else {
+            polyLineOpts.add(latLng);
+        }
+
+        mMap.addPolyline(polyLineOpts);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
