@@ -21,6 +21,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.google.android.gms.common.ConnectionResult;
@@ -106,13 +107,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                if (!isMyServiceRunning(RouteTrackService.class)) {
+                    Toast.makeText(getApplicationContext(), "Tracking Started", Toast.LENGTH_SHORT).show();
+
+                    startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                }
             }
         });
         btnStop.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Tracking Stopped", Toast.LENGTH_SHORT).show();
+
                 Intent intent = new Intent();
                 intent.setAction(ACTION_STOP);
                 sendBroadcast(intent);
@@ -132,7 +139,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             startService(new Intent(this, RouteTrackService.class));
         }
-
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
     }
 
     /**

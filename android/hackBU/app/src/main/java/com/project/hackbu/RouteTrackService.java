@@ -97,9 +97,10 @@ public class RouteTrackService extends Service implements
     @Override
     public void onDestroy() {
         routeCoord.clear();
-        mGoogleApiClient.disconnect();
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, this);
+        mGoogleApiClient.disconnect();
+        unregisterReceiver(receiver);
     }
 
     @Nullable
