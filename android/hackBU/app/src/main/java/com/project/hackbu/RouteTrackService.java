@@ -72,11 +72,11 @@ public class RouteTrackService extends Service implements
     public static String EXTRA_LONGITUDE_LIST = "com.project.hackbu.longitude_list";
 
     // in milliseconds
-    private static int REQUEST_FAST_INTERVAL = 5000;
-    private static int REQUEST_INTERVAL = 80000;
+    private static int REQUEST_FAST_INTERVAL = 3000;
+    private static int REQUEST_INTERVAL = 60000;
 
     // meters
-    private static int REQUEST_SMALLEST_DISPLACEMENT = 5;
+    private static int REQUEST_SMALLEST_DISPLACEMENT = 3;
 
     private GoogleApiClient mGoogleApiClient;
     private BroadcastReceiver receiver;
@@ -236,7 +236,7 @@ public class RouteTrackService extends Service implements
         double longitude = location.getLongitude();
         LatLng newLatLng = new LatLng(latitude, longitude);
 
-        if (runningAvg.size() == 5) {
+        if (runningAvg.size() == 7) {
             runningAvg.removeFirst();
         }
 

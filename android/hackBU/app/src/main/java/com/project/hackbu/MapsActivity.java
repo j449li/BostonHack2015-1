@@ -51,7 +51,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static String ACTION_GET_COORDS = "com.project.hackbu.action_get_coords";
     public static String ACTION_STOP = "com.project.hackbu.action_stop";
 
-    public static int INITIAL_ZOOM_LVL = 15;
+    public static int INITIAL_ZOOM_LVL = 17;
     private boolean started = false;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -133,8 +133,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // Make Server calls here
                     try {
-                        getInfo("/user/info", Color.argb(200,200,200,200));
-                        getInfo("/enemy/info", Color.argb(200, 150, 0, 0));
+                        populateTurfs();
                     } catch (JSONException e) {
                         Log.e(TAG, e.toString());
                     } catch (UnsupportedEncodingException e) {
@@ -144,6 +143,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+    }
+
+    private void populateTurfs() throws UnsupportedEncodingException, JSONException{
+        getInfo("/user/info", Color.argb(180,50,200,50));
+        getInfo("/enemy/info", Color.argb(180, 200, 50, 50));
     }
 
     @Override
@@ -164,6 +168,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             stopRouteTrackService();
             mMap.clear();
+
+            try {
+                populateTurfs();
+            } catch (Exception e) {
+
+            }
         }
     }
 
