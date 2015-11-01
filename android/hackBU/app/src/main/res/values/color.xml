@@ -3,5 +3,7 @@
 
     <color name = "red">#c20c00</color>
     <color name = "green">#1dc217</color>
-    <color name = "trans_green">#801dc217</color>
+    <color name = "trans_yellow">#ccede217</color>
+    <color name = "trans_red">#ccc20c00</color>
+    <color name = "trans_white">#FFFFFFFF</color>
 </resources>

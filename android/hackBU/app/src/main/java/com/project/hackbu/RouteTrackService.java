@@ -70,7 +70,6 @@ public class RouteTrackService extends Service implements
     public static String EXTRA_LONGITUDE = "com.project.hackbu.longitude";
     public static String EXTRA_LATITUDE_LIST = "com.project.hackbu.latitude_list";
     public static String EXTRA_LONGITUDE_LIST = "com.project.hackbu.longitude_list";
-    public static String EXTRA_HIDE_MARKER = "com.project.hackbu.hide_marker";
 
     // in milliseconds
     private static int REQUEST_FAST_INTERVAL = 5000;

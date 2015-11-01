@@ -49,7 +49,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static String TAG = MapsActivity.class.toString();
 
     public static String ACTION_GET_COORDS = "com.project.hackbu.action_get_coords";
-    public static String ACTION_GET_ENEMY_COORDS = "com.project.hackbu.action_get_enemy_coords";
     public static String ACTION_STOP = "com.project.hackbu.action_stop";
 
     public static int INITIAL_ZOOM_LVL = 15;
@@ -134,7 +133,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // Make Server calls here
                     try {
-                        getInfo();
+                        getInfo("/user/info", Color.argb(200,200,200,200));
+                        getInfo("/enemy/info", Color.argb(200, 150, 0, 0));
                     } catch (JSONException e) {
                         Log.e(TAG, e.toString());
                     } catch (UnsupportedEncodingException e) {
@@ -174,7 +174,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         unregisterReceiver(receiver);
     }
 
-    private void getInfo() throws UnsupportedEncodingException, JSONException {
+    private void getInfo(String url, final int color) throws UnsupportedEncodingException, JSONException {
         final JSONObject requestJson = new JSONObject();
         requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
 
@@ -190,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Log.e(TAG, requestJson.toString());
 
-        ApiClient.post(this, "/user/info", new StringEntity(requestJson.toString()), new JsonHttpResponseHandler() {
+        ApiClient.post(this, url, new StringEntity(requestJson.toString()), new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 if (statusCode == 200) {
@@ -219,7 +219,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 latLngList.add(new LatLng(latitude, longitude));
                             }
                         }
-                        drawRoute(latLngList);
+                        drawRoute(latLngList, color);
                     } catch (JSONException e) {
                         Log.e(TAG, e.toString());
                     }
@@ -241,11 +241,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void drawRoute(List<LatLng> latLngs) {
+    private void drawRoute(List<LatLng> latLngs, int color) {
 
         for (LatLng ll : latLngs) {
             CircleOptions circleOptions = new CircleOptions();
-            circleOptions.center(ll).radius(14).fillColor(R.color.trans_green);
+            circleOptions.center(ll).radius(14).fillColor(color).strokeColor(Color.TRANSPARENT);
             mMap.addCircle(circleOptions);
         }
 
