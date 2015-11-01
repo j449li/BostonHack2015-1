@@ -8,6 +8,8 @@ import java.util.Map;
  */
 public class UserData {
 
+    public static String ID = "id";
+
     private static UserData userData;
 
     private Map<String, Object> data;

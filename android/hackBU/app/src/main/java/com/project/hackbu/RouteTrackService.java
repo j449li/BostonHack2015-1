@@ -24,6 +24,7 @@ import com.google.maps.android.SphericalUtil;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.project.hackbu.util.ApiClient;
 import com.project.hackbu.util.HTTPService;
+import com.project.hackbu.util.UserData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -132,7 +133,7 @@ public class RouteTrackService extends Service implements
 
     private void makeUpdateToServer() throws  UnsupportedEncodingException, JSONException{
         final JSONObject requestJson = new JSONObject();
-        requestJson.put("player_id", "estar");
+        requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
 
         JSONArray arr = new JSONArray();
         for (LatLng ll : routeCoord) {

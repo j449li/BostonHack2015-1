@@ -40,6 +40,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.project.hackbu.util.ApiClient;
+import com.project.hackbu.util.UserData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -179,7 +180,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void getInfo() throws UnsupportedEncodingException, JSONException {
         final JSONObject requestJson = new JSONObject();
-        requestJson.put("player_id", "estar");
+        requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
 
 //        JSONArray arr = new JSONArray();
 //        for (LatLng ll : routeCoord) {
