@@ -69,6 +69,7 @@ var login = function(username, password, callback){
 var update = function(points, player_id, callback){
 	// console.log(deltaLat);
 	// console.log(deltaLng);
+	console.log(points);
 
 	var azureTablePoints = [];
 	points.forEach(function(elem, index, arr){
