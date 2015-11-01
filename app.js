@@ -66,6 +66,22 @@ app.post('/user/info', function(req, res){
     });
 });
 
+app.post('/enemy/info', function(req, res){
+    res.set({
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+    });
+
+    azure.info(req.body.player_id, function(areaData){
+    	if(areaData.statusCode != 200){
+    		res.status(400).send(areaData.body);
+    	}
+    	else{
+    		res.status(200).send(areaData.body);
+    	}
+    });
+});
+
 app.get('/_ah/health', function(req, res) {
     res.set({
         "Content-Type": "application/json",

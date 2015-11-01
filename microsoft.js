@@ -155,8 +155,27 @@ var info = function(player_id, callback){
 	});
 }
 
+var enemyInfo = function(player_id, callback){
+	var options = {
+		method:"POST",
+		url: URL + "/api/enemyarea",
+		headers:{
+			'Accept':'application/json'
+		}, 
+		body:{
+		  'player_id': player_id
+		},
+		json:true
+	}
+
+	request(options, function(error, response){
+		callback(response);
+	});
+}
+
 module.exports = {
 	login: login,
 	update: update,
-	info: info
+	info: info,
+	enemyInfo: enemyInfo
 }
