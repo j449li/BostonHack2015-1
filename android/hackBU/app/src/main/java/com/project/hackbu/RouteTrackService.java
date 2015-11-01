@@ -88,11 +88,11 @@ public class RouteTrackService extends Service implements
     public static String EXTRA_LONGITUDE_LIST = "com.project.hackbu.longitude_list";
 
     // in milliseconds
-    private static int REQUEST_FAST_INTERVAL = 3000;
-    private static int REQUEST_INTERVAL = 5000;
+    private static int REQUEST_FAST_INTERVAL = 1000;
+    private static int REQUEST_INTERVAL = 3000;
 
     // meters
-    private static int REQUEST_SMALLEST_DISPLACEMENT = 3;
+    private static int REQUEST_SMALLEST_DISPLACEMENT = 2;
 
     private GoogleApiClient mGoogleApiClient;
     private BroadcastReceiver receiver;
@@ -104,7 +104,7 @@ public class RouteTrackService extends Service implements
     private BandClient client = null;
     public static int recentHeartRate = 0;
     public static MotionType recentMotionType = MotionType.IDLE;
-    private static int HEART_RATE_THRESHOLD = 70;
+    private static int HEART_RATE_THRESHOLD = 90;
 
     private List<Integer> recentHBs = new ArrayList<>();
 

@@ -426,7 +426,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             mMap.addPolyline(polyLineOpts);
         }
-        
+
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
