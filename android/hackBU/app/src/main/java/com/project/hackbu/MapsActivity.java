@@ -10,6 +10,7 @@ import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.widget.TextView;
 
 
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         OnRequestPermissionsResultCallback, ConnectionCallbacks, LocationListener, OnConnectionFailedListener {
 
+    private static String TAG = MapsActivity.class.toString();
     private static long REQUEST_LOCATION = 111111111L;
 
     private boolean mRequestingLocationUpdates = false;
@@ -43,6 +45,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         buildGoogleApiClient();
+        mGoogleApiClient.connect();
+
         setUpMapIfNeeded();
     }
 
@@ -59,7 +63,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onPause() {
         super.onPause();
-        stopLocationUpdates();
+        if (mGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+        }
     }
 
     /**
@@ -136,7 +142,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(latitude, longitude);
         mMap.addMarker(new MarkerOptions().position(latLng));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
     }
 
     @Override
@@ -156,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
+        Log.e(TAG, connectionResult.toString());
     }
 
     protected void stopLocationUpdates() {
