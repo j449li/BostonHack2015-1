@@ -123,6 +123,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Intent intent = new Intent();
                 intent.setAction(ACTION_STOP);
                 sendBroadcast(intent);
+
+                mMap.clear();
             }
         });
     }
@@ -140,7 +142,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             startService(new Intent(this, RouteTrackService.class));
         }
     }
-    
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
