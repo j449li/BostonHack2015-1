@@ -3,4 +3,5 @@
 
     <color name = "red">#c20c00</color>
     <color name = "green">#1dc217</color>
+    <color name = "trans_green">#801dc217</color>
 </resources>

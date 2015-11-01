@@ -54,13 +54,14 @@ public class RouteTrackService extends Service implements
     public static String EXTRA_LONGITUDE = "com.project.hackbu.longitude";
     public static String EXTRA_LATITUDE_LIST = "com.project.hackbu.latitude_list";
     public static String EXTRA_LONGITUDE_LIST = "com.project.hackbu.longitude_list";
+    public static String EXTRA_HIDE_MARKER = "com.project.hackbu.hide_marker";
 
     // in milliseconds
-    private static int REQUEST_FAST_INTERVAL = 3000;
-    private static int REQUEST_INTERVAL = 5000;
+    private static int REQUEST_FAST_INTERVAL = 5000;
+    private static int REQUEST_INTERVAL = 80000;
 
     // meters
-    private static int REQUEST_SMALLEST_DISPLACEMENT = 2;
+    private static int REQUEST_SMALLEST_DISPLACEMENT = 5;
 
     private GoogleApiClient mGoogleApiClient;
     private BroadcastReceiver receiver;
@@ -98,6 +99,7 @@ public class RouteTrackService extends Service implements
                     response.putExtra(RouteTrackService.EXTRA_LONGITUDE_LIST, longitudes);
                     sendBroadcast(response);
                 } else if (action.equals(MapsActivity.ACTION_STOP)) {
+                    unregisterReceiver(receiver);
                     try {
                         makeUpdateToServer();
                     } catch (JSONException e) {
@@ -121,7 +123,7 @@ public class RouteTrackService extends Service implements
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, this);
         mGoogleApiClient.disconnect();
-        unregisterReceiver(receiver);
+
     }
 
     @Nullable

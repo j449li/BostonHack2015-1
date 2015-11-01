@@ -8,11 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
+import android.graphics.CornerPathEffect;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -21,23 +17,18 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.maps.android.PolyUtil;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.project.hackbu.util.ApiClient;
 
@@ -46,6 +37,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
@@ -55,9 +48,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static String TAG = MapsActivity.class.toString();
 
     public static String ACTION_GET_COORDS = "com.project.hackbu.action_get_coords";
+    public static String ACTION_GET_ENEMY_COORDS = "com.project.hackbu.action_get_enemy_coords";
     public static String ACTION_STOP = "com.project.hackbu.action_stop";
 
     public static int INITIAL_ZOOM_LVL = 15;
+    private boolean started = false;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private BroadcastReceiver receiver;
@@ -97,7 +92,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     if (latitude != -1 && longitude != -1) {
                         addMarker(latitude, longitude);
-                        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
                     }
 
                     double latitudes[] = intent.getDoubleArrayExtra(RouteTrackService.EXTRA_LATITUDE_LIST);
@@ -122,6 +116,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 if (!isMyServiceRunning(RouteTrackService.class)) {
                     Toast.makeText(getApplicationContext(), "Starting...", Toast.LENGTH_SHORT).show();
+                    started = true;
                     mMap.clear();
 
                     startService(new Intent(MapsActivity.this, RouteTrackService.class));
@@ -130,7 +125,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.red));
                 } else {
                     Toast.makeText(getApplicationContext(), "Stopping...", Toast.LENGTH_SHORT).show();
-
+                    started = false;
                     stopRouteTrackService();
 
                     btnStartStop.setText("Start");
@@ -166,14 +161,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onResume();
         setUpMapIfNeeded();
 
-        if (isMyServiceRunning(RouteTrackService.class)) {
+        if (isMyServiceRunning(RouteTrackService.class) && started) {
             Intent intent = new Intent();
             intent.setAction(MapsActivity.ACTION_GET_COORDS);
             sendBroadcast(intent);
         } else {
             startService(new Intent(this, RouteTrackService.class));
             try {
-                wait(2000);
+                wait(3000);
             } catch (Exception e) {
 
             }
@@ -185,6 +180,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopRouteTrackService();
         unregisterReceiver(receiver);
     }
 
@@ -217,6 +213,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         JSONArray arr = response.names();
                         Log.d(TAG, arr.toString());
 
+                        List<LatLng> latLngList = new ArrayList<LatLng>();
                         for (int i = 0; i < arr.length(); i++) {
                             String id = (String)arr.get(i);
                             JSONArray jArr = response.getJSONArray(id);
@@ -229,9 +226,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 double latitude = jObj.getDouble("latitude");
                                 double longitude = jObj.getDouble("longitude");
 
-                                drawMapBlock(player_id, latitude, longitude);
+                                latLngList.add(new LatLng(latitude, longitude));
                             }
                         }
+                        drawRoute(latLngList);
                     } catch (JSONException e) {
                         Log.e(TAG, e.toString());
                     }
@@ -253,9 +251,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void drawMapBlock(String player_id, double latitude, double longitude) {
-//        LatLng latLng = new LatLng(latitude, longitude);
-        addMarker(latitude, longitude);
+    private void drawRoute(List<LatLng> latLngs) {
+
+        for (LatLng ll : latLngs) {
+            CircleOptions circleOptions = new CircleOptions();
+            circleOptions.center(ll).radius(14).fillColor(R.color.trans_green);
+            mMap.addCircle(circleOptions);
+        }
+
+//        PolygonOptions pOptions = new PolygonOptions();
+//        pOptions.strokeColor(Color.RED).fillColor(Color.BLUE);
+//        for (LatLng ll : latLngs) {
+//            if (PolyUtil.isLocationOnEdge(ll, latLngs, true)) {
+//                pOptions.add(ll);
+//            }
+//        }
+//        mMap.addPolygon(pOptions);
+
     }
 
     private void stopRouteTrackService() {
@@ -309,9 +321,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.zoomTo(INITIAL_ZOOM_LVL));
     }
 
+    // for testing
     private void addMarker(double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(latLng));
+
+        mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
