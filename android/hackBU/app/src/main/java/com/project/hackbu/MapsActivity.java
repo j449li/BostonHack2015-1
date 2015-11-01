@@ -34,6 +34,8 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.microsoft.band.BandClient;
@@ -79,6 +81,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button hrtStatus;
 
     private BandClient client = null;
+
+    private PolylineOptions polyLineOpts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,12 +146,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isMyServiceRunning(RouteTrackService.class)) {
+                if (!started) {
                     Toast.makeText(getApplicationContext(), "Starting...", Toast.LENGTH_SHORT).show();
                     started = true;
                     mMap.clear();
 
-                    startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                    if (!isMyServiceRunning(RouteTrackService.class)) {
+                        startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                    }
                     new HeartRateSubscriptionTask().execute();
                     btnStartStop.setText("Stop");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.red));
@@ -155,6 +161,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(getApplicationContext(), "Stopping...", Toast.LENGTH_SHORT).show();
                     started = false;
                     stopRouteTrackService();
+                    polyLineOpts = null;
 
                     btnStartStop.setText("Start");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.green));
@@ -394,7 +401,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void addMarker(double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
 
-        mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
+        if (polyLineOpts == null) {
+//            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
+            polyLineOpts = new PolylineOptions()
+            .add(latLng)
+            .width(10)
+            .color(Color.BLUE)
+            .geodesic(true);
+        } else {
+            polyLineOpts.add(latLng);
+        }
+
+        mMap.addPolyline(polyLineOpts);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 

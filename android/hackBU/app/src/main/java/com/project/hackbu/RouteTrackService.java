@@ -88,7 +88,7 @@ public class RouteTrackService extends Service implements
 
     // in milliseconds
     private static int REQUEST_FAST_INTERVAL = 3000;
-    private static int REQUEST_INTERVAL = 60000;
+    private static int REQUEST_INTERVAL = 6000;
 
     // meters
     private static int REQUEST_SMALLEST_DISPLACEMENT = 3;
