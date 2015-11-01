@@ -26,10 +26,10 @@ app.post('/map/update', function(req, res){
 
     azure.update(req.body.points, req.body.player_id, function(data){
     	if(data.statusCode != 200){
-    		res.status(400).send(data);
+    		res.status(400).send(data.body);
     	}
     	else{
-    		res.status(200).send(data);
+    		res.status(200).send(data.body);
     	}
     });
 });
