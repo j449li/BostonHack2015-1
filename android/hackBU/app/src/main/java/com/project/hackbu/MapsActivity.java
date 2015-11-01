@@ -1,6 +1,11 @@
 package com.project.hackbu;
 
 import android.Manifest;
+import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -30,23 +35,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
-        OnRequestPermissionsResultCallback, ConnectionCallbacks, LocationListener, OnConnectionFailedListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static String TAG = MapsActivity.class.toString();
-    private static long REQUEST_LOCATION = 111111111L;
 
-    // in milliseconds
-    private static int REQUEST_FAST_INTERVAL = 7000;
-    private static int REQUEST_INTERVAL = 4000;
-
-    // meters
-    private static int REQUEST_SMALLEST_DISPLACEMENT = 10;
-
-    private boolean mRequestingLocationUpdates = false;
+    public static String ACTION_GET_COORDS = "com.project.hackbu.action_get_coords";
+    public static String ACTION_STOP = "com.project.hackbu.action_stop";
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private GoogleApiClient mGoogleApiClient;
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +54,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_maps);
 
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
-
         setUpMapIfNeeded();
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+
+                if (action.equals(RouteTrackService.ACTION_NEW_COORD)) {
+                    double latitude = intent.getDoubleExtra(RouteTrackService.EXTRA_LATITUDE, -1);
+                    double longitude = intent.getDoubleExtra(RouteTrackService.EXTRA_LONGITUDE, -1);
+
+                    if (latitude != -1 && longitude != -1) {
+                        addMarker(latitude, longitude);
+                    }
+
+                } else if (action.equals(RouteTrackService.ACTION_ALL_COORDS)) {
+
+                    double latitude = intent.getDoubleExtra(RouteTrackService.EXTRA_LATITUDE, -1);
+                    double longitude = intent.getDoubleExtra(RouteTrackService.EXTRA_LONGITUDE, -1);
+
+                    if (latitude != -1 && longitude != -1) {
+                        addMarker(latitude, longitude);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
+                    }
+
+                    double latitudes[] = intent.getDoubleArrayExtra(RouteTrackService.EXTRA_LATITUDE_LIST);
+                    double longitudes[] = intent.getDoubleArrayExtra(RouteTrackService.EXTRA_LONGITUDE_LIST);
+
+                    if (latitudes.length == longitudes.length) {
+                        for (int i =0 ; i < latitudes.length; i++) {
+                            addMarker(latitudes[i], longitudes[i]);
+                        }
+                    }
+
+                }
+            }
+        };
+        registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_NEW_COORD));
+        registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_ALL_COORDS));
     }
 
     @Override
@@ -68,17 +100,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onResume();
         setUpMapIfNeeded();
 
-        if (mGoogleApiClient.isConnected()) {
-            startLocationUpdates();
+        if (isMyServiceRunning(RouteTrackService.class)) {
+            Intent intent = new Intent();
+            intent.setAction(MapsActivity.ACTION_GET_COORDS);
+            sendBroadcast(intent);
+        } else {
+            startService(new Intent(this, RouteTrackService.class));
         }
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mGoogleApiClient.isConnected()) {
-            stopLocationUpdates();
-        }
     }
 
     /**
@@ -126,37 +155,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
     }
 
-    protected LocationRequest createLocationRequest() {
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(REQUEST_FAST_INTERVAL);
-        mLocationRequest.setFastestInterval(REQUEST_INTERVAL);
-        mLocationRequest.setSmallestDisplacement(REQUEST_SMALLEST_DISPLACEMENT);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        return mLocationRequest;
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    protected void startLocationUpdates() {
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, createLocationRequest(), this);
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
+    private void addMarker(double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
         mMap.addMarker(new MarkerOptions().position(latLng));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
     }
 
     @Override
@@ -164,23 +166,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
     }
 
-    @Override
-    public void onConnected(Bundle bundle) {
-        startLocationUpdates();
+    // I believe the more correct approach is to have the service set a global variable of its state
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e(TAG, connectionResult.toString());
-    }
-
-    protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient, this);
-    }
 }
