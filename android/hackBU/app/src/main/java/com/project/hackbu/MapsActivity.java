@@ -11,6 +11,8 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 
@@ -34,6 +36,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static String TAG = MapsActivity.class.toString();
     private static long REQUEST_LOCATION = 111111111L;
 
+    // in milliseconds
+    private static int REQUEST_FAST_INTERVAL = 7000;
+    private static int REQUEST_INTERVAL = 4000;
+
+    // meters
+    private static int REQUEST_SMALLEST_DISPLACEMENT = 10;
+
     private boolean mRequestingLocationUpdates = false;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -42,6 +51,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_maps);
 
         buildGoogleApiClient();
@@ -110,13 +123,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             finish();
         }
 
-//        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
     }
 
     protected LocationRequest createLocationRequest() {
         LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(REQUEST_FAST_INTERVAL);
+        mLocationRequest.setFastestInterval(REQUEST_INTERVAL);
+        mLocationRequest.setSmallestDisplacement(REQUEST_SMALLEST_DISPLACEMENT);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         return mLocationRequest;

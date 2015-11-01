@@ -41,8 +41,13 @@
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" >
+            android:label="@string/title_activity_maps"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         </activity>
+
+        <service
+            android:name=".RouteTrackService"
+            android:exported="false"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
