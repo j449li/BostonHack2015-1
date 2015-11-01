@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -50,8 +51,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private BroadcastReceiver receiver;
 
-    private Button btnStart;
-    private Button btnStop;
+    private Button btnStartStop;
+    private Button btnRanking;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,29 +103,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_NEW_COORD));
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_ALL_COORDS));
 
-        btnStart = (Button) findViewById(R.id.btnStart);
-        btnStop = (Button) findViewById(R.id.btnStop);
-        btnStart.setOnClickListener(new View.OnClickListener() {
+        btnStartStop = (Button) findViewById(R.id.btnStartStop);
+        btnRanking = (Button) findViewById(R.id.btnRanking);
+
+        btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isMyServiceRunning(RouteTrackService.class)) {
-                    Toast.makeText(getApplicationContext(), "Tracking Started", Toast.LENGTH_SHORT).show();
+                if(btnStartStop.getText().equals("Start")) {
+                    if (!isMyServiceRunning(RouteTrackService.class)) {
+                        Toast.makeText(getApplicationContext(), "Tracking Started", Toast.LENGTH_SHORT).show();
 
+                        startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                    }
+                    btnStartStop.setText("End");
+                    btnStartStop.setBackgroundColor(Color.RED);
                     startService(new Intent(MapsActivity.this, RouteTrackService.class));
+                }
+                else {
+                    btnStartStop.setText("Start");
+                    btnStartStop.setBackgroundColor(Color.GREEN);
+                    Toast.makeText(getApplicationContext(), "Tracking Stopped", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent();
+                    intent.setAction(ACTION_STOP);
+                    sendBroadcast(intent);
+
+                    mMap.clear();
                 }
             }
         });
-        btnStop.setOnClickListener(new View.OnClickListener() {
+        btnRanking.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Tracking Stopped", Toast.LENGTH_SHORT).show();
-
-                Intent intent = new Intent();
-                intent.setAction(ACTION_STOP);
-                sendBroadcast(intent);
-
-                mMap.clear();
+                Intent intent = new Intent(MapsActivity.this, RankingActivity.class);
+                startActivity(intent);
             }
         });
     }
