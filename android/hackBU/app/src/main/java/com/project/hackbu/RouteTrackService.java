@@ -104,7 +104,7 @@ public class RouteTrackService extends Service implements
     private BandClient client = null;
     public static int recentHeartRate = 0;
     public static MotionType recentMotionType = MotionType.IDLE;
-    private static int HEART_RATE_THRESHOLD = 90;
+    private static int HEART_RATE_THRESHOLD = 70;
 
     private List<Integer> recentHBs = new ArrayList<>();
 
