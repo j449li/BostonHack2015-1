@@ -154,12 +154,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if (!isMyServiceRunning(RouteTrackService.class)) {
                         startService(new Intent(MapsActivity.this, RouteTrackService.class));
                     }
+                    new HeartRateSubscriptionTask().execute();
                     btnStartStop.setText("Stop");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.red));
                 } else {
                     Toast.makeText(getApplicationContext(), "Stopping...", Toast.LENGTH_SHORT).show();
                     started = false;
                     stopRouteTrackService();
+                    polyLineOpts = null;
 
                     btnStartStop.setText("Start");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.green));
