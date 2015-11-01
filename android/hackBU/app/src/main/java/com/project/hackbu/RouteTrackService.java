@@ -43,8 +43,8 @@ public class RouteTrackService extends Service implements
     public static String EXTRA_LONGITUDE_LIST = "com.project.hackbu.longitude_list";
 
     // in milliseconds
-    private static int REQUEST_FAST_INTERVAL = 1000;
-    private static int REQUEST_INTERVAL = 3000;
+    private static int REQUEST_FAST_INTERVAL = 3000;
+    private static int REQUEST_INTERVAL = 5000;
 
     // meters
     private static int REQUEST_SMALLEST_DISPLACEMENT = 2;
@@ -118,8 +118,8 @@ public class RouteTrackService extends Service implements
 
     protected LocationRequest createLocationRequest() {
         LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(REQUEST_FAST_INTERVAL);
-        mLocationRequest.setFastestInterval(REQUEST_INTERVAL);
+        mLocationRequest.setInterval(REQUEST_INTERVAL);
+        mLocationRequest.setFastestInterval(REQUEST_FAST_INTERVAL);
         mLocationRequest.setSmallestDisplacement(REQUEST_SMALLEST_DISPLACEMENT);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 

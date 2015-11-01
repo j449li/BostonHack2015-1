@@ -16,8 +16,10 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 
@@ -42,8 +44,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static String ACTION_GET_COORDS = "com.project.hackbu.action_get_coords";
     public static String ACTION_STOP = "com.project.hackbu.action_stop";
 
+    public static int INITIAL_ZOOM_LVL = 15;
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private BroadcastReceiver receiver;
+
+    private Button btnStart;
+    private Button btnStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +100,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_NEW_COORD));
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_ALL_COORDS));
+
+        btnStart = (Button) findViewById(R.id.btnStart);
+        btnStop = (Button) findViewById(R.id.btnStop);
+        btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startService(new Intent(MapsActivity.this, RouteTrackService.class));
+            }
+        });
+        btnStop.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction(ACTION_STOP);
+                sendBroadcast(intent);
+            }
+        });
     }
 
     @Override
@@ -152,7 +177,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             finish();
         }
 
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(INITIAL_ZOOM_LVL));
     }
 
     private void addMarker(double latitude, double longitude) {
