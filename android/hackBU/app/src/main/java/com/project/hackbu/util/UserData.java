@@ -10,6 +10,8 @@ public class UserData {
 
     public static String ID = "id";
 
+    public static String TEAM = "team";
+
     private static UserData userData;
 
     private Map<String, Object> data;
@@ -30,6 +32,10 @@ public class UserData {
 
     public void setData(String key, Object object) {
         data.put(key, object);
+    }
+
+    public boolean hasData(String key) {
+        return data.containsKey(key);
     }
 
 }

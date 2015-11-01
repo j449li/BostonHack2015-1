@@ -169,6 +169,9 @@ public class RouteTrackService extends Service implements
     private void makeUpdateToServer() throws  UnsupportedEncodingException, JSONException{
         final JSONObject requestJson = new JSONObject();
         requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
+        if(UserData.getInstance().hasData(UserData.TEAM)) {
+            requestJson.put("team", UserData.getInstance().getData(UserData.TEAM));
+        }
 
         JSONArray arr = new JSONArray();
         for (LatLng ll : routeCoord) {
@@ -192,7 +195,7 @@ public class RouteTrackService extends Service implements
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
-                Log.e(TAG, ""+statusCode);
+                Log.e(TAG, "" + statusCode);
 //                Log.d(TAG, response.toString());
                 //Log.d(TAG, requestJson.toString());
             }

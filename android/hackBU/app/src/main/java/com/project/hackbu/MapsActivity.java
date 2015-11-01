@@ -184,6 +184,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void populateTurfs() throws UnsupportedEncodingException, JSONException{
         getInfo("/user/info", Color.argb(180,50,200,50));
+        if(UserData.getInstance().hasData(UserData.TEAM)) {
+            getInfo("/ally/info", Color.argb(100, 200, 50, 50));
+        }
         getInfo("/enemy/info", Color.argb(180, 200, 50, 50));
     }
     private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener() {
@@ -255,7 +258,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void getInfo(String url, final int color) throws UnsupportedEncodingException, JSONException {
         final JSONObject requestJson = new JSONObject();
         requestJson.put("player_id", UserData.getInstance().getData(UserData.ID));
-
+        if(UserData.getInstance().hasData(UserData.TEAM)) {
+            requestJson.put("team", UserData.getInstance().getData(UserData.TEAM));
+        }
 //        JSONArray arr = new JSONArray();
 //        for (LatLng ll : routeCoord) {
 //            JSONObject json1 = new JSONObject();
