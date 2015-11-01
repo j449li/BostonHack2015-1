@@ -402,7 +402,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(latitude, longitude);
 
         if (polyLineOpts == null) {
-            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
+//            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
             polyLineOpts = new PolylineOptions()
             .add(latLng)
             .width(10)
