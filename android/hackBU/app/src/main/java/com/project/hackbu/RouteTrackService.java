@@ -80,6 +80,7 @@ public class RouteTrackService extends Service implements
 
     public static String ACTION_NEW_COORD = "com.project.hackbu.action_new_coord";
     public static String ACTION_ALL_COORDS = "com.project.hackbu.action_all_coords";
+    public static String ACTION_LAZY_USER = "com.project.hackbu.action_lazy_user";
 
     public static String EXTRA_LATITUDE = "com.project.hackbu.latitude";
     public static String EXTRA_LONGITUDE = "com.project.hackbu.longitude";
@@ -88,7 +89,7 @@ public class RouteTrackService extends Service implements
 
     // in milliseconds
     private static int REQUEST_FAST_INTERVAL = 3000;
-    private static int REQUEST_INTERVAL = 6000;
+    private static int REQUEST_INTERVAL = 5000;
 
     // meters
     private static int REQUEST_SMALLEST_DISPLACEMENT = 3;
@@ -103,6 +104,9 @@ public class RouteTrackService extends Service implements
     private BandClient client = null;
     public static int recentHeartRate = 0;
     public static MotionType recentMotionType = MotionType.IDLE;
+    private static int HEART_RATE_THRESHOLD = 70;
+
+    private List<Integer> recentHBs = new ArrayList<>();
 
     @Override
     public void onCreate() {
@@ -235,8 +239,31 @@ public class RouteTrackService extends Service implements
 
     }
 
+    private boolean isUserLazy() {
+        int hbr = recentHeartRate;
+        if (hbr < HEART_RATE_THRESHOLD) {
+            recentHBs.add(hbr);
+            if (recentHBs.size() > 4) {
+                Intent intent = new Intent();
+                intent.setAction(ACTION_LAZY_USER);
+                sendBroadcast(intent);
+
+                stopSelf();
+                return true;
+            }
+            return false;
+        } else {
+            recentHBs.clear();
+            return false;
+        }
+    }
+
     @Override
     public void onLocationChanged(Location location) {
+        if (isUserLazy()) {
+            return;
+        }
+
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         LatLng newLatLng = new LatLng(latitude, longitude);

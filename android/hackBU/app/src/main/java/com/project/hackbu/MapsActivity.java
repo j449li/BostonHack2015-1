@@ -134,12 +134,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                     }
 
+                } else if (action.equals(RouteTrackService.ACTION_LAZY_USER)) {
+                    if (started) {
+                        Toast.makeText(getApplicationContext(), "You rested too long", Toast.LENGTH_SHORT);
+                        btnStartStop.callOnClick();
+                    }
                 }
             }
         };
         new HeartRateSubscriptionTask().execute();
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_NEW_COORD));
         registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_ALL_COORDS));
+        registerReceiver(receiver, new IntentFilter(RouteTrackService.ACTION_LAZY_USER));
 
         hrtStatus = (Button) findViewById(R.id.hrtStatus);
         btnStartStop = (Button) findViewById(R.id.btnStartStop);
@@ -183,8 +189,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void populateTurfs() throws UnsupportedEncodingException, JSONException{
-        getInfo("/user/info", Color.argb(180,50,200,50));
         getInfo("/enemy/info", Color.argb(180, 200, 50, 50));
+        getInfo("/user/info", Color.argb(180,50,200,50));
     }
     private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener() {
         @Override
@@ -401,15 +407,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void addMarker(double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
 
-        if (polyLineOpts == null) {
+        if (started) {
+            if (polyLineOpts == null) {
 //            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
-            polyLineOpts = new PolylineOptions()
-            .add(latLng)
-            .width(10)
-            .color(Color.BLUE)
-            .geodesic(true);
-        } else {
-            polyLineOpts.add(latLng);
+                polyLineOpts = new PolylineOptions()
+                        .add(latLng)
+                        .width(10)
+                        .color(Color.BLUE)
+                        .geodesic(true);
+            } else {
+                polyLineOpts.add(latLng);
+            }
         }
 
         mMap.addPolyline(polyLineOpts);
