@@ -38,6 +38,17 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.project.hackbu.util.ApiClient;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.StringEntity;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -70,6 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
+                // TODO should not default to -1 because it is a valid lat/long
                 if (action.equals(RouteTrackService.ACTION_NEW_COORD)) {
                     double latitude = intent.getDoubleExtra(RouteTrackService.EXTRA_LATITUDE, -1);
                     double longitude = intent.getDoubleExtra(RouteTrackService.EXTRA_LONGITUDE, -1);
@@ -110,6 +122,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 if (!isMyServiceRunning(RouteTrackService.class)) {
                     Toast.makeText(getApplicationContext(), "Starting...", Toast.LENGTH_SHORT).show();
+                    mMap.clear();
 
                     startService(new Intent(MapsActivity.this, RouteTrackService.class));
 
@@ -119,10 +132,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(getApplicationContext(), "Stopping...", Toast.LENGTH_SHORT).show();
 
                     stopRouteTrackService();
-                    mMap.clear();
 
                     btnStartStop.setText("Start");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.green));
+
+                    mMap.clear();
+
+                    // Make Server calls here
+                    try {
+                        getInfo();
+                    } catch (JSONException e) {
+                        Log.e(TAG, e.toString());
+                    } catch (UnsupportedEncodingException e) {
+                        Log.e(TAG, e.toString());
+                    }
                 }
             }
         });
@@ -163,6 +186,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+    }
+
+    private void getInfo() throws UnsupportedEncodingException, JSONException {
+        final JSONObject requestJson = new JSONObject();
+        requestJson.put("player_id", "maidi");
+
+//        JSONArray arr = new JSONArray();
+//        for (LatLng ll : routeCoord) {
+//            JSONObject json1 = new JSONObject();
+//            json1.put("latitude", ll.latitude);
+//            json1.put("longitude", ll.longitude);
+//            arr.put(json1);
+//        }
+//
+//        requestJson.put("points", arr);
+
+        Log.e(TAG, requestJson.toString());
+
+        ApiClient.post(this, "/user/info", new StringEntity(requestJson.toString()), new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                if (statusCode == 200) {
+                    Log.d(TAG, "CALL SUCCESSFUL");
+                    Log.d(TAG, response.toString());
+
+                    try {
+
+                        // redraw filled map
+                        JSONArray arr = response.names();
+                        Log.d(TAG, arr.toString());
+
+                        for (int i = 0; i < arr.length(); i++) {
+                            String id = (String)arr.get(i);
+                            JSONArray jArr = response.getJSONArray(id);
+
+                            for (int j = 0; j < jArr.length(); j++) {
+                                JSONObject jObj = jArr.getJSONObject(i);
+                                Log.d(TAG, jObj.toString());
+
+                                String player_id = jObj.getString("player_id");
+                                double latitude = jObj.getDouble("latitude");
+                                double longitude = jObj.getDouble("longitude");
+
+                                drawMapBlock(player_id, latitude, longitude);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, e.toString());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
+                Log.d(TAG, response.toString());
+                //Log.d(TAG, requestJson.toString());
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Log.d(TAG, responseString);
+                //Log.d(TAG, requestJson.toString());
+            }
+
+        });
+    }
+
+    private void drawMapBlock(String player_id, double latitude, double longitude) {
+//        LatLng latLng = new LatLng(latitude, longitude);
+        addMarker(latitude, longitude);
     }
 
     private void stopRouteTrackService() {

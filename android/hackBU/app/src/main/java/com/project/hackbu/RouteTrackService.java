@@ -12,6 +12,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -20,12 +21,24 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.project.hackbu.util.ApiClient;
+import com.project.hackbu.util.HTTPService;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.StringEntity;
 
 /**
  * Created by George on 2015-11-01.
@@ -85,6 +98,14 @@ public class RouteTrackService extends Service implements
                     response.putExtra(RouteTrackService.EXTRA_LONGITUDE_LIST, longitudes);
                     sendBroadcast(response);
                 } else if (action.equals(MapsActivity.ACTION_STOP)) {
+                    try {
+                        makeUpdateToServer();
+                    } catch (JSONException e) {
+                        Log.e(TAG, e.toString());
+                    } catch (UnsupportedEncodingException e) {
+                        Log.e(TAG, e.toString());
+                    }
+
                     stopSelf();
                 }
             }
@@ -107,6 +128,45 @@ public class RouteTrackService extends Service implements
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void makeUpdateToServer() throws  UnsupportedEncodingException, JSONException{
+        final JSONObject requestJson = new JSONObject();
+        requestJson.put("player_id", "estar");
+
+        JSONArray arr = new JSONArray();
+        for (LatLng ll : routeCoord) {
+            JSONObject json1 = new JSONObject();
+            json1.put("latitude", ll.latitude);
+            json1.put("longitude", ll.longitude);
+            arr.put(json1);
+        }
+
+        requestJson.put("points", arr);
+
+        Log.e(TAG, requestJson.toString());
+
+        ApiClient.post(getApplicationContext(), "/map/update", new StringEntity(requestJson.toString()), new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                if (statusCode == 200) {
+                    Log.d(TAG, "UPDATE SUCCESSFUL");
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
+                Log.d(TAG, response.toString());
+                //Log.d(TAG, requestJson.toString());
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Log.d(TAG, responseString);
+                //Log.d(TAG, requestJson.toString());
+            }
+
+        });
     }
 
     protected synchronized void buildGoogleApiClient() {
