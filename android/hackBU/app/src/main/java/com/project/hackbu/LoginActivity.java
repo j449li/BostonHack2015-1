@@ -1,13 +1,19 @@
 package com.project.hackbu;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -18,7 +24,9 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.SupportMapFragment;
 import com.project.hackbu.util.HTTPService;
 import com.project.hackbu.util.UserData;
 
@@ -34,14 +42,18 @@ import cz.msebera.android.httpclient.util.EntityUtils;
  */
 public class LoginActivity extends Activity {
 
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
+
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private Bundle savedInstanceState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        this.savedInstanceState = savedInstanceState;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -149,22 +161,60 @@ public class LoginActivity extends Activity {
 
             @Override
             protected void onPostExecute(Void result) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        showProgress(false);
-                        if (!UserData.getInstance().getData("id").equals("")) {
-                            // go to maps activity
-                            Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
-                            startActivity(intent);
-                        } else {
-                            mEmailView.setError("Registration/Login failed with email");
+                //For backwards compat with Android API <= 22
+                if (ContextCompat.checkSelfPermission(LoginActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            showProgress(false);
+                            if (!UserData.getInstance().getData("id").equals("")) {
+                                // go to maps activity
+                                Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
+                                startActivity(intent);
+                            } else {
+                                mEmailView.setError("Registration/Login failed with email");
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    ActivityCompat.requestPermissions(LoginActivity.this,
+                            new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                            REQUEST_CODE_ASK_PERMISSIONS);
+                }
             }
         }
 
         new Connection().execute();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            showProgress(false);
+                            if (!UserData.getInstance().getData("id").equals("")) {
+                                // go to maps activity
+                                Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
+                                startActivity(intent);
+                            } else {
+                                mEmailView.setError("Registration/Login failed with email");
+                            }
+                        }
+                    });
+                } else {
+                    // Permission Denied
+                    Toast.makeText(LoginActivity.this, "Location Services Denied", Toast.LENGTH_SHORT)
+                            .show();
+                    this.onCreate(savedInstanceState);
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
     private boolean isEmailValid(String email) {
