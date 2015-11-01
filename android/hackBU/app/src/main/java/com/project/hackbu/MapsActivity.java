@@ -192,7 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener() {
         @Override
         public void onBandHeartRateChanged(final BandHeartRateEvent event) {
-            if (event != null && event.getQuality() == HeartRateQuality.LOCKED) {
+            if (event != null) {
                 //Heartrate can be received
                 RouteTrackService.recentHeartRate = event.getHeartRate();
 
@@ -407,7 +407,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(latitude, longitude);
 
         if (polyLineOpts == null) {
-            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
+//            mMap.addMarker(new MarkerOptions().position(latLng).visible(started));
             polyLineOpts = new PolylineOptions()
             .add(latLng)
             .width(10)
