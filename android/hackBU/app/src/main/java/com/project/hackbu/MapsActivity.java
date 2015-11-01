@@ -148,7 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mMap.clear();
 
                     startService(new Intent(MapsActivity.this, RouteTrackService.class));
-
+                    new HeartRateSubscriptionTask().execute();
                     btnStartStop.setText("Stop");
                     btnStartStop.setBackgroundColor(getResources().getColor(R.color.red));
                 } else {
