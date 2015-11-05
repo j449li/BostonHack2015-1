@@ -1,4 +1,4 @@
-# BostonHack2015-1
+# TurfWarz
 
 ###Endpoints
 ```
@@ -36,3 +36,4 @@ request: {
 }
 response: check for status 200 for success
 ```
+####Like us on [Devpost](http://devpost.com/software/turfwarz-frhbet)!

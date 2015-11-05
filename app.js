@@ -2,7 +2,6 @@ var express = require("express");
 var app = express();
 //var multer = require('multer');
 var bodyParser = require('body-parser');
-var Polygon = require('polygon');
 var azure = require('./microsoft');
 
 app.set('port', (process.env.PORT || 5000));
@@ -25,32 +24,14 @@ app.post('/map/update', function(req, res){
         "Access-Control-Allow-Origin": "*"
     });
 
-    var poly = new Polygon(req.body.points);
-    console.log(poly.area());
-
-    var options = {
-		method:"POST",
-		url: URL + "/api/polygon",
-		headers:{
-			'Accept':'application/json'
-			// 'Content-Length': JSON.stringify(req.body).length
-		}, 
-		body:{
-		  // 'points':req.body.points,
-		  'player_id':req.body.player_id,
-		  'area':poly.area()
-		},
-		json:true
-	}
-	request(options, function(error, response){
-		if(error){
-			console.log(error);
-		}
-		else{
-			console.log(response.body);
-			res.status(200).send('ok');
-		}
-	});
+    azure.update(req.body.points, req.body.player_id, function(data){
+    	if(data.statusCode != 200){
+    		res.status(400).send(data.body);
+    	}
+    	else{
+    		res.status(200).send(data.body);
+    	}
+    });
 });
 
 app.post('/user/login', function(req, res){
@@ -60,41 +41,45 @@ app.post('/user/login', function(req, res){
     });
 
     azure.login(req.body.username, req.body.password, function(userData){
-    	res.status(200).send(userData);
+    	if(userData.statusCode != 200){
+    		res.status(400).send(userData.body);
+    	}
+    	else{
+    		res.status(200).send(userData.body);
+    	}
     });
 });
 
-app.get('/user/info', function(req, res){
+app.post('/user/info', function(req, res){
     res.set({
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*"
     });
 
-    var poly = new Polygon(req.body.points);
-    console.log(poly.area());
+    azure.info(req.body.player_id, function(areaData){
+    	if(areaData.statusCode != 200){
+    		res.status(400).send(areaData.body);
+    	}
+    	else{
+    		res.status(200).send(areaData.body);
+    	}
+    });
+});
 
-    var options = {
-		method:"POST",
-		url: URL + "/api/user",
-		headers:{
-			'Accept':'application/json'
-			// 'Content-Length': JSON.stringify(req.body).length
-		}, 
-		body:{
-		  'username':req.body.username,
-		  'area':poly.area()
-		},
-		json:true
-	}
-	request(options, function(error, response){
-		if(error){
-			console.log(error);
-		}
-		else{
-			console.log(response.body);
-			res.status(200).send('ok');
-		}
-	});
+app.post('/enemy/info', function(req, res){
+    res.set({
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+    });
+
+    azure.enemyInfo(req.body.player_id, function(areaData){
+    	if(areaData.statusCode != 200){
+    		res.status(400).send(areaData.body);
+    	}
+    	else{
+    		res.status(200).send(areaData.body);
+    	}
+    });
 });
 
 app.get('/_ah/health', function(req, res) {
@@ -103,15 +88,5 @@ app.get('/_ah/health', function(req, res) {
         "Access-Control-Allow-Origin": "*"
     });
     console.log(req.headers);
-    res.status(200).send('ok');
-});
-
-app.post('/test', function(req, res) {
-    res.set({
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-    });
-    console.log(req.body);
-    // console.log(JSON.stringify(req.body).length);
     res.status(200).send('ok');
 });
